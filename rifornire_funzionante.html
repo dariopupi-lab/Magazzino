@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestione Magazzino (Locale)</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    #interactive.viewport { position: relative; width: 100%; height: 300px; overflow: hidden; }
+    #interactive.viewport canvas, #interactive.viewport video { position: absolute; left: 0; top: 0; }
+    .drawingBuffer { position: absolute; top: 0; left: 0; }
+  </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <div class="max-w-4xl mx-auto p-4 md:p-8 bg-white shadow-xl rounded-lg mt-5">
+    <h1 class="text-3xl font-bold text-center text-orange-700 mb-6">📦 Gestione Magazzino Negozio (LOCALE)</h1>
+
+    <div class="text-center text-sm mb-4 text-orange-600 font-semibold">
+      Dati salvati LOCALMENTE sul browser. Non è richiesta configurazione.
+    </div>
+
+    <div class="flex border-b border-gray-200 mb-6">
+      <button data-tab-button="scan-view"
+        class="tab-button py-2 px-4 text-lg font-medium border-r border-gray-200 text-orange-600 border-orange-600 border-b-2">
+        Scansione
+      </button>
+      <button data-tab-button="inventory-view"
+        class="tab-button py-2 px-4 text-lg font-medium border-r border-gray-200 text-gray-500 hover:bg-gray-50">
+        Inventario & Modifica
+      </button>
+      <button data-tab-button="restock-view"
+        class="tab-button py-2 px-4 text-lg font-medium text-gray-500 hover:bg-gray-50">
+        Da Rifornire
+      </button>
+    </div>
+
+    <!-- === SCANSIONE === -->
+    <section id="scan-view" class="p-4" data-tab-content>
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Scanner Codici a Barre</h2>
+      <div id="interactive" class="viewport shadow-md rounded-lg mb-4"></div>
+      <div id="scanned-result" class="bg-yellow-100 p-3 rounded-lg text-gray-700 text-sm mb-4 hidden">
+        <strong>Risultato Scansione:</strong> <span id="barcode-output" class="font-mono font-bold text-gray-800"></span>
+      </div>
+      <button id="start-scan-btn" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-lg transition">Avvia Scansione</button>
+      <button id="stop-scan-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg mt-2 hidden transition">Ferma Scansione</button>
+    </section>
+
+    <!-- === INVENTARIO === -->
+    <section id="inventory-view" class="p-4 hidden" data-tab-content>
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Inventario Attuale e Modifica Prodotto</h2>
+
+      <div class="flex justify-between mb-4 flex-wrap gap-2">
+        <button id="export-excel-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">📤 Esporta Excel</button>
+        <label for="import-excel-input" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded cursor-pointer">📥 Importa Excel</label>
+        <input type="file" id="import-excel-input" accept=".xlsx,.xls" class="hidden">
+      </div>
+
+      <div class="mb-6">
+        <input type="text" id="search-input" placeholder="Cerca per SKU o Nome Articolo..."
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+      </div>
+
+      <div id="product-form-container" class="border p-4 rounded-lg bg-gray-50 mb-6">
+        <h3 class="text-lg font-semibold mb-3">Dettagli Prodotto</h3>
+        <form id="product-form">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="barcode-input">Codice a Barre (SKU)</label>
+          <input id="barcode-input" type="text" class="border rounded w-full py-2 px-3 text-gray-700 mb-3 bg-gray-200" readonly required>
+
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="name-input">Nome Prodotto</label>
+          <input id="name-input" type="text" class="border rounded w-full py-2 px-3 text-gray-700 mb-3" placeholder="Nome Articolo" required>
+
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="quantity-input">Quantità Attuale</label>
+          <input id="quantity-input" type="number" class="border rounded w-full py-2 px-3 text-gray-700 mb-3" placeholder="0" min="0" required>
+
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="price-input">Prezzo di Vendita (€)</label>
+          <input id="price-input" type="number" step="0.01" class="border rounded w-full py-2 px-3 text-gray-700 mb-3" placeholder="0.00">
+
+          <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded mt-4">Salva / Aggiorna Prodotto</button>
+        </form>
+
+        <div class="mt-4 flex space-x-2">
+          <button id="increase-stock-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">+1</button>
+          <button id="decrease-stock-btn" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">-1</button>
+          <button id="delete-product-btn" class="flex-1 bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded">🗑️ Elimina</button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+          <thead>
+            <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+              <th class="py-3 px-6 text-left">SKU</th>
+              <th class="py-3 px-6 text-left">Nome</th>
+              <th class="py-3 px-6 text-center">Quantità</th>
+              <th class="py-3 px-6 text-center">Prezzo (€)</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-list" class="text-gray-600 text-sm font-light"></tbody>
+        </table>
+      </div>
+
+      <p id="total-value" class="text-right text-gray-700 mt-4 font-semibold"></p>
+
+      <button id="clear-inventory-btn" class="mt-4 w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">Cancella TUTTO l'Inventario Locale</button>
+    </section>
+
+    <!-- === DA RIFORNIRE === -->
+    <section id="restock-view" class="p-4 hidden" data-tab-content>
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Prodotti da Rifornire</h2>
+
+      <div class="flex items-center mb-4 gap-3">
+        <label class="font-semibold text-gray-700">Mostra prodotti con quantità minore di:</label>
+        <input id="restock-threshold" type="number" value="5" min="1" class="w-20 p-2 border rounded text-center">
+        <button id="export-restock-btn" class="ml-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">📤 Esporta Excel</button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+          <thead>
+            <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+              <th class="py-3 px-6 text-left">SKU</th>
+              <th class="py-3 px-6 text-left">Nome</th>
+              <th class="py-3 px-6 text-center">Quantità</th>
+              <th class="py-3 px-6 text-center">Aggiungi</th>
+              <th class="py-3 px-6 text-center">Azione</th>
+            </tr>
+          </thead>
+          <tbody id="restock-list" class="text-gray-600 text-sm font-light"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div id="error-log" class="text-red-600 text-sm mt-4"></div>
+  </div>
+
+  <script>
+  // ---------- Stato e storage ----------
+let inventory = [];
+const STORAGE_KEY = 'localWarehouseInventory';
+
+// ---------- Elementi ----------
+const tabButtons = document.querySelectorAll('.tab-button');
+const startScanBtn = document.getElementById('start-scan-btn');
+const stopScanBtn = document.getElementById('stop-scan-btn');
+const barcodeInput = document.getElementById('barcode-input');
+const nameInput = document.getElementById('name-input');
+const quantityInput = document.getElementById('quantity-input');
+const priceInput = document.getElementById('price-input');
+const increaseStockBtn = document.getElementById('increase-stock-btn');
+const decreaseStockBtn = document.getElementById('decrease-stock-btn');
+const deleteProductBtn = document.getElementById('delete-product-btn');
+const clearInventoryBtn = document.getElementById('clear-inventory-btn');
+
+// ---------- Funzioni storage ----------
+function loadInventoryFromStorage() {
+  const data = localStorage.getItem(STORAGE_KEY);
+  if (data) {
+    try { inventory = JSON.parse(data); } 
+    catch (e) { console.error(e); localStorage.removeItem(STORAGE_KEY); inventory = []; }
+  } else inventory = [];
+  renderTable();
+  renderRestockTable();
+}
+
+function saveInventoryToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+  renderTable();
+  renderRestockTable();
+}
+
+// ---------- Tab switching ----------
+function switchTab(viewId) {
+  document.querySelectorAll('[data-tab-content]').forEach(c => c.classList.add('hidden'));
+  tabButtons.forEach(b => b.classList.remove('text-orange-600','border-orange-600','border-b-2'));
+  const target = document.getElementById(viewId);
+  if (target) target.classList.remove('hidden');
+  const btn = Array.from(tabButtons).find(b => b.getAttribute('data-tab-button') === viewId);
+  if (btn) btn.classList.add('text-orange-600','border-orange-600','border-b-2');
+}
+
+// ---------- Form e manipolazione prodotto ----------
+function resetForm() {
+  barcodeInput.value = '';
+  nameInput.value = '';
+  quantityInput.value = 0;
+  priceInput.value = '';
+}
+
+function loadProductDetails(sku) {
+  resetForm();
+  barcodeInput.value = sku;
+  const p = inventory.find(i => i.id === sku);
+  if (p) {
+    nameInput.value = p.nome;
+    quantityInput.value = p.quantita;
+    priceInput.value = p.prezzo;
+  } else nameInput.focus();
+}
+
+// ---------- Scanner (Quagga) ----------
+function startScanner() {
+  try {
+    Quagga.offDetected(handleScannedCode);
+    Quagga.init({
+      inputStream: {
+        name: "Live",
+        type: "LiveStream",
+        target: document.querySelector('#interactive'),
+        constraints: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }
+      },
+      decoder: { readers: ["ean_reader","code_128_reader","upc_reader","ean_8_reader"] }
+    }, err => {
+      if (err) { document.getElementById('error-log').textContent = 'Errore: '+err.message; return; }
+      Quagga.start();
+      startScanBtn.classList.add('hidden');
+      stopScanBtn.classList.remove('hidden');
+    });
+    Quagga.onDetected(handleScannedCode);
+  } catch (e) {
+    document.getElementById('error-log').textContent = 'Errore scanner: '+e.message;
+    console.error(e);
+  }
+}
+
+function stopScanner() {
+  try { if (typeof Quagga!=='undefined' && Quagga.stop) Quagga.stop(); } catch(e){}
+  startScanBtn.classList.remove('hidden');
+  stopScanBtn.classList.add('hidden');
+  document.getElementById('interactive').innerHTML = '';
+}
+
+function handleScannedCode(result) {
+  const code = result && result.codeResult && result.codeResult.code;
+  if (code) {
+    stopScanner();
+    document.getElementById('scanned-result').classList.remove('hidden');
+    document.getElementById('barcode-output').textContent = code;
+    switchTab('inventory-view');
+    loadProductDetails(code);
+  }
+}
+
+// ---------- Eventi form ----------
+document.getElementById('product-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const sku = barcodeInput.value.trim();
+  const nome = nameInput.value.trim();
+  const quantita = parseInt(quantityInput.value) || 0;
+  const prezzo = parseFloat(priceInput.value || 0);
+  if (!sku || !nome) return alert("Completa tutti i campi.");
+  const idx = inventory.findIndex(i => i.id === sku);
+  const data = { id: sku, nome, quantita, prezzo };
+  if (idx > -1) inventory[idx] = data; else inventory.push(data);
+  saveInventoryToStorage();
+  alert("Prodotto salvato!");
+});
+
+increaseStockBtn.onclick = () => handleStockChange(1);
+decreaseStockBtn.onclick = () => handleStockChange(-1);
+clearInventoryBtn.onclick = clearAllInventory;
+deleteProductBtn.onclick = deleteProduct;
+
+function handleStockChange(delta) {
+  const sku = barcodeInput.value.trim();
+  const i = inventory.findIndex(p => p.id === sku);
+  if (i === -1) return alert("Prodotto non trovato.");
+  const newQ = (inventory[i].quantita || 0) + delta;
+  if (newQ < 0) return alert("Quantità non può essere negativa.");
+  inventory[i].quantita = newQ;
+  quantityInput.value = newQ;
+  saveInventoryToStorage();
+}
+
+function deleteProduct() {
+  const sku = barcodeInput.value.trim();
+  if (!sku) return alert("Nessun prodotto selezionato.");
+  if (confirm(`Eliminare il prodotto ${sku}?`)) {
+    inventory = inventory.filter(p => p.id !== sku);
+    saveInventoryToStorage();
+    resetForm();
+    alert("Prodotto eliminato.");
+  }
+}
+
+function clearAllInventory() {
+  if (confirm("Cancellare tutto l'inventario locale?")) {
+    localStorage.removeItem(STORAGE_KEY);
+    inventory = [];
+    renderTable();
+    resetForm();
+    alert("Inventario svuotato.");
+  }
+}
+
+// ---------- Render tabella inventario ----------
+function renderTable() {
+  const body = document.getElementById('inventory-list');
+  const search = (document.getElementById('search-input')?.value || '').toLowerCase();
+  let tot = 0;
+  const filt = inventory.filter(i =>
+    (i.id || '').toString().toLowerCase().includes(search) ||
+    (i.nome || '').toLowerCase().includes(search)
+  );
+  body.innerHTML = filt.length ? '' : '<tr><td colspan="4" class="py-4 text-center text-gray-500">Nessun prodotto trovato.</td></tr>';
+  filt.forEach(i => {
+    const r = body.insertRow();
+    r.dataset.sku = i.id;
+    r.classList.add('cursor-pointer','hover:bg-gray-200');
+    tot += (parseFloat(i.prezzo)||0)*(parseInt(i.quantita)||0);
+    r.innerHTML = `
+      <td class="py-2 px-6 border-b">${i.id}</td>
+      <td class="py-2 px-6 border-b">${i.nome}</td>
+      <td class="py-2 px-6 text-center border-b font-bold">${i.quantita}</td>
+      <td class="py-2 px-6 text-center border-b">${i.prezzo ? '€'+parseFloat(i.prezzo).toFixed(2) : 'N/D'}</td>`;
+  });
+  addTableRowListeners();
+  document.getElementById('total-value').textContent = `Valore Totale Stimato: €${tot.toFixed(2)}`;
+  renderRestockTable();
+}
+
+function addTableRowListeners() {
+  document.querySelectorAll('#inventory-list tr').forEach(r => {
+    r.onclick = () => { loadProductDetails(r.dataset.sku); switchTab('inventory-view'); };
+  });
+}
+
+// ---------- IMPORT / EXPORT ----------
+document.getElementById("export-excel-btn").addEventListener("click", () => {
+  if (!inventory.length) return alert("Nessun dato da esportare.");
+  const exportData = inventory.map(i => ({
+    id:i.id, nome:i.nome, quantita:i.quantita, prezzo:i.prezzo
+  }));
+  const ws = XLSX.utils.json_to_sheet(exportData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Inventario");
+  XLSX.writeFile(wb, "inventario_magazzino.xlsx");
+});
+
+document.getElementById("import-excel-input").addEventListener("change", e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data,{type:"array"});
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const newData = XLSX.utils.sheet_to_json(sheet,{defval:""});
+      newData.forEach(item=>{
+        const id=item.id||item.ID||item.sku||item.SKU; if(!id) return;
+        const nome=item.nome||item.Nome||"";
+        const quantita=parseInt(item.quantita||item.Quantita||0)||0;
+        const prezzo=parseFloat(item.prezzo||item.Prezzo||0)||0;
+        const exists=inventory.find(p=>p.id===id.toString());
+        if(exists){ exists.quantita+=(quantita||0); if(nome)exists.nome=nome; if(prezzo)exists.prezzo=prezzo; }
+        else inventory.push({id:id.toString(),nome:nome||"Senza nome",quantita,prezzo});
+      });
+      saveInventoryToStorage(); alert("Importazione completata!");
+    } catch(err){ alert("Errore durante l'importazione: "+err.message);}
+    e.target.value="";
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+// ---------- TAB “DA RIFORNIRE” ----------
+const thresholdInput=document.getElementById('restock-threshold');
+thresholdInput.addEventListener('input',renderRestockTable);
+
+document.getElementById('export-restock-btn').addEventListener('click',()=>{
+  const threshold=parseInt(thresholdInput.value)||5;
+  const low=inventory.filter(p=>p.quantita<threshold);
+  if(!low.length) return alert("Nessun prodotto da esportare.");
+  const ws=XLSX.utils.json_to_sheet(low);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"DaRifornire");
+  XLSX.writeFile(wb,"prodotti_da_rifornire.xlsx");
+});
+
+function renderRestockTable(){
+  const threshold=parseInt(thresholdInput.value)||5;
+  const low=inventory.filter(p=>p.quantita<threshold);
+  const body=document.getElementById('restock-list');
+  body.innerHTML=low.length?'':'<tr><td colspan="5" class="py-4 text-center text-gray-500">Tutti i prodotti sono sopra la soglia.</td></tr>';
+  low.forEach(i=>{
+    const r=body.insertRow();
+    r.innerHTML=`
+      <td class="py-2 px-6 border-b">${i.id}</td>
+      <td class="py-2 px-6 border-b">${i.nome}</td>
+      <td class="py-2 px-6 text-center border-b font-bold text-red-600">${i.quantita}</td>
+      <td class="py-2 px-6 text-center border-b"><input type="number" min="1" value="1" class="restock-qty w-16 border rounded p-1 text-center" data-sku="${i.id}"></td>
+      <td class="py-2 px-6 text-center border-b"><button class="restock-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded" data-sku="${i.id}">Rifornito</button></td>`;
+  });
+  document.querySelectorAll('.restock-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const sku=btn.dataset.sku;
+      const qtyInput=document.querySelector(`.restock-qty[data-sku="${sku}"]`);
+      const addQty=parseInt(qtyInput.value)||0;
+      const product=inventory.find(p=>p.id===sku);
+      if(product && addQty>0){
+        product.quantita+=addQty;
+        saveInventoryToStorage();
+      }
+    });
+  });
+}
+
+// ---------- Init ----------
+tabButtons.forEach(b=>b.addEventListener('click',e=>switchTab(e.target.getAttribute('data-tab-button'))));
+startScanBtn.onclick=startScanner;
+stopScanBtn.onclick=stopScanner;
+document.getElementById('search-input')?.addEventListener('input',renderTable);
+switchTab('scan-view');
+loadInventoryFromStorage();
+  </script>
+</body>
+</html>
