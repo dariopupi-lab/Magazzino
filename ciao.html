@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Drone Pilot PRO</title>
+  <style>
+    /* STILI GENERALI */
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:system-ui,Arial,sans-serif;background:#0A2647;color:#fff;min-height:100vh}
+    header{background:#0A2647;padding:1.5rem;text-align:center}
+    .header-content{display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .logo-img{width:80px;height:80px;margin-bottom:.5rem;border-radius:50%}
+    h1{font-size:1.6rem;font-weight:700;margin-top:0}
+    .subtitle{font-size:.95rem;opacity:.9}
+    main{max-width:900px;margin:2rem auto;padding:0 1rem;}
+    .card{background:#fff;color:#1a1a1a;border-radius:18px;overflow:hidden;box-shadow:0 15px 35px rgba(10,38,71,.25); width:100%;}
+    .ateco{background:#144272;color:#fff;padding:1rem;text-align:center;font-weight:600}
+    .form{padding:2rem 1.8rem 1.5rem}
+    label{display:block;margin:1.4rem 0 .6rem;font-weight:600;font-size:.95rem;color:#2d3748}
+    .inline-label{font-weight:normal;margin:0;font-size:.85rem;opacity:.7}
+    input,select{width:100%;padding:1rem 1.1rem;font-size:1.1rem;border:2px solid #e2e8f0;border-radius:10px;background:#fcfcfc}
+    input:focus,select:focus{border-color:#0A2647;outline:none}
+    button{margin-top:2rem;width:100%;padding:1.1rem;font-size:1.2rem;font-weight:700;background:#0A2647;color:#fff;border:none;border-radius:10px}
+    .ris{display:none;margin:1.8rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+    .r{display:flex;justify-content:space-between;padding:1rem 1.5rem;font-size:1.1rem;border-bottom:1px solid #edf2f7}
+    .r span:first-child{font-weight:600;color:#2d3748}
+    .r b{font-weight:700;font-size:1.15rem}
+    .tot{color:#d32f2f}
+    .net{color:#2e7d32}
+    footer{padding:1.5rem;text-align:center;font-size:.85rem;opacity:.8}
+    .btn-group{display:flex;gap:10px;margin-top:1rem}
+    .btn-group button{margin-top:0;padding:.8rem;font-size:.9rem;font-weight:600;background:#4A5568}
+    .btn-group button:last-child{background:#9B2C2C}
+    .input-row{margin-bottom:10px;border:1px solid #e2e8f0;padding:10px;border-radius:8px}
+    .input-row>label{margin-top:0;margin-bottom:5px}
+    .tab-buttons{display:flex;justify-content:center;margin-bottom:1.5rem;gap:10px;flex-wrap:wrap;max-width:520px;margin-left:auto;margin-right:auto}
+    .tab-button{padding:.8rem 1.5rem;background:#144272;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;transition:background .2s;flex-grow:0;width:calc(50% - 5px);max-width:250px}
+    .tab-button:hover{background:#0A2647}
+    .tab-button.active{background:#FFD700;color:#0A2647}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+    .storico-card{max-height:600px;overflow-y:auto;overflow-x:auto}
+    .storico-table{width:100%;min-width:700px;border-collapse:collapse;font-size:.85rem;margin-top:10px;color:#1a1a1a}
+    .storico-table th,.storico-table td{padding:8px 5px;text-align:right;border-bottom:1px solid #f1f1f1}
+    .storico-table tr{cursor:pointer;transition:background-color .2s}
+    .storico-table tr:hover{background-color:#f7f7f7}
+    .storico-table th{white-space:normal;background:#e9ecef;color:#1a1a1a;font-weight:600;position:sticky;top:0}
+    
+    /* Stili tabella clienti */
+    #tabella_clienti.storico-table{min-width:100%}
+    #tabella_clienti th:nth-child(1), #tabella_clienti td:nth-child(1){width:35%;text-align:left}
+    #tabella_clienti th:nth-child(2), #tabella_clienti td:nth-child(2){width:20%;text-align:left}
+    #tabella_clienti th:nth-child(3), #tabella_clienti td:nth-child(3){width:30%;text-align:left}
+    #tabella_clienti th:nth-child(4), #tabella_clienti td:nth-child(4){width:10%;text-align:left}
+    #tabella_clienti th:nth-child(5), #tabella_clienti td:nth-child(5){width:5%;text-align:center}
+    /* Bottoni piccoli azione */
+    .small-btn{padding:5px 8px;font-size:.9rem;border-radius:6px;border:none;cursor:pointer}
+    .btn-copy{background:#007BFF;color:#fff;margin-right:6px}
+    .btn-delete{background:#9B2C2C;color:#fff}
+    @media (max-width:720px){.tab-button{width:48%}}
+
+    /* Layout calendario tracker */
+    .calendario-tracker {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .giorno-intestazione {
+      text-align: center;
+      font-weight: 700;
+      color:#FFFFFF ;
+      background:#144272;
+      border-radius: 8px;
+      padding: 6px;
+    }
+    .giorno-tracker {
+      background: #f1f1f1;
+      color: #1a1a1a;
+      padding: 10px 5px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.1s;
+      aspect-ratio: 1/1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      user-select: none;
+      border: 2px solid #e2e8f0;
+    }
+    .giorno-tracker.lavorato {
+      background: #2e7d32;
+      color: #fff;
+      border-color: #1b5e20;
+    }
+    .giorno-tracker.ridotto {
+      background: #FFD700;
+      color: #1a1a1a;
+      border-color: #f0c500;
+    }
+    .giorno-tracker.odierno {
+      border: 3px solid #0A2647;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+        <img src="1762889373669.jpg" alt="Logo Drone Pilot PRO" class="logo-img">
+        <h1>DRONE PILOT PRO</h1>
+    </div>
+    <div class="subtitle">Calcolo tasse e storico mensile – Regime Forfettario</div>
+  </header>
+
+  <main>
+    <div class="tab-buttons">
+        <button class="tab-button active" onclick="switchTab('calcolatore')">CALCOLATORE</button>
+        <button class="tab-button" onclick="switchTab('storico')">STORICO ANNUALE</button>
+        <button class="tab-button" onclick="switchTab('tracker_giorni')">TRACKER GIORNI</button>
+        <button class="tab-button" onclick="switchTab('anagrafica_clienti')">ANAGRAFICA CLIENTI</button>
+    </div>
+
+    <div id="calcolatore" class="tab-content active">
+      <div class="card">
+        <div class="ateco">ATECO 74.20.19 – Altre attività di fotografia</div>
+        <div class="form">
+          <label style="margin:.8rem 0 .6rem">INSERISCI I GUADAGNI MENSILI (DIVISI PER TARIFFA)</label>
+          <div id="righe_guadagno"></div>
+
+          <div class="btn-group">
+            <button type="button" onclick="azzeraCampi()" style="background:#007BFF">AZZERA TUTTI I CAMPI</button>
+            <button type="button" onclick="rimuoviRiga()">RIMUOVI ULTIMA RIGA</button>
+          </div>
+
+          <button type="button" onclick="aggiungiRiga()" style="margin-top:1rem;padding:.8rem;background:#144272;width:auto">+ Aggiungi altra riga</button>
+
+          <label>Rimborsi Extra/Spese anticipate (NON TASSABILI)</label>
+          <input type="number" id="rimborsi_extra" placeholder="€ extra da rimborsare" value="0" step="0.01">
+          <label>Imposta sostitutiva</label>
+          <select id="tasse">
+            <option value="0.05">5% (primi 5 anni)</option>
+            <option value="0.15">15% (dopo)</option>
+          </select>
+
+          <button onclick="calcola()">CALCOLA NETTO</button>
+
+          <div id="ris" class="ris">
+            <div class="r"><span>Fatturato lordo</span><span>€ <b id="fatt">0</b></span></div>
+            <div class="r"><span>Rimborsi Extra/Spese ant. (non tassabili)</span><span>€ <b id="rimborsi_display">0</b></span></div> 
+            <div class="r"><span>Imponibile (78%)</span><span>€ <b id="imp">0</b></span></div>
+            <div class="r"><span>Tasse</span><span>€ <b id="t">0</b></span></div>
+            <div class="r"><span>INPS (26,07%)</span><span>€ <b id="p">0</b></span></div>
+            <div class="r tot"><span>DA VERSARE</span><span>€ <b id="v">0</b></span></div>
+            <div class="r net"><span>NETTO</span><span>€ <b id="n">0</b></span></div>
+
+            <div style="padding:1.5rem;border-top:1px solid #edf2f7;background:#fff">
+              <label style="margin:0 0 .6rem;color:#0A2647">SALVA PER:</label>
+              <div class="selector-group" style="display:flex;gap:10px">
+                <div style="flex:1">
+                  <span class="inline-label" style="opacity:1;color:#1a1a1a">Mese</span>
+                  <select id="mese_storico"></select>
+                </div>
+                <div style="flex:1">
+                  <span class="inline-label" style="opacity:1;color:#1a1a1a">Anno</span>
+                  <select id="anno_storico"></select>
+                </div>
+              </div>
+              <button onclick="salvaRisultati()" style="margin-top:.5rem;padding:.9rem;background:#2e7d32">SALVA RISULTATI MENSILI</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="storico" class="tab-content">
+      <div class="card">
+        <div class="ateco" style="display:flex;justify-content:space-between;align-items:center;padding:.8rem 1rem">
+          <span>STORICO ANNUALE:</span>
+          <select id="select_anno_storico" onchange="renderStorico()" style="width:auto;padding:5px 10px;font-size:1rem;border:none;border-radius:5px;background:#fff;color:#144272;font-weight:600"></select>
+        </div>
+        <div style="padding:1.2rem 1.2rem 0">
+          <div class="storico-card">
+            <table class="storico-table">
+              <thead>
+                <tr>
+                  <th style="width:100px;text-align:left">Mese</th>
+                  <th>Fatturato €</th>
+                  <th>Imponibile €</th>
+                  <th>Tasse €</th>
+                  <th>INPS €</th>
+                  <th>DA VERSARE €</th>
+                  <th>Netto €</th>
+                </tr>
+              </thead>
+              <tbody id="tabella_storico_body"></tbody>
+            </table>
+          </div>
+
+          <div class="summary-section" style="padding:0 0 10px">
+            <div class="r"><span>Totale Fatturato Lordo Annuo:</span><span id="lordo_annuo_totale">€ 0</span></div>
+            <div class="r"><span>Totale Tasse e INPS Annuali:</span><span id="tasse_annue_totali" class="tot">€ 0</span></div>
+            <div class="r" style="border-bottom:none"><span>Totale Netto Annuo:</span><span id="netto_annuo_totale" class="net">€ 0</span></div>
+            <div style="text-align:center;padding:10px 0 0;display:flex;flex-direction:column;align-items:center">
+              <button onclick="esportaStoricoExcel()" style="width:80%;max-width:400px;padding:.6rem .8rem;background:#2e7d32;margin:5px auto;border-radius:8px">Esporta Storico Annuale in Excel (CSV)</button>
+              <button id="btn_elimina_selezionato" onclick="eliminaMeseSelezionato()" style="width:80%;max-width:400px;padding:.6rem .8rem;background:#9B2C2C;margin:5px auto;border-radius:8px" disabled>Elimina Mese Selezionato</button>
+              <button onclick="cancellaStorico()" style="width:80%;max-width:400px;padding:.6rem .8rem;background:#9B2C2C;margin:5px auto;border-radius:8px">Cancella Storico Completo di questo Anno</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div id="tracker_giorni" class="tab-content">
+      <div class="card">
+        <div class="ateco" style="padding:.8rem 1rem;text-align:center">TRACKER GIORNI LAVORATI</div>
+        <div style="padding:1.2rem;text-align:center">
+          <div class="selector-group" style="margin-bottom:20px;display:flex;gap:10px">
+            <div style="flex:1">
+              <span class="inline-label" style="opacity:1;color:#1a1a1a">Mese</span>
+              <select id="tracker_mese" onchange="renderTracker()"></select>
+            </div>
+            <div style="flex:1">
+              <span class="inline-label" style="opacity:1;color:#1a1a1a">Anno</span>
+              <select id="tracker_anno" onchange="renderTracker()"></select>
+            </div>
+          </div>
+
+          <div id="intestazione_giorni_tracker" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:5px;max-width:500px;margin:0 auto 8px">
+            <div class="giorno-intestazione">L</div><div class="giorno-intestazione">M</div><div class="giorno-intestazione">M</div>
+            <div class="giorno-intestazione">G</div><div class="giorno-intestazione">V</div><div class="giorno-intestazione">S</div><div class="giorno-intestazione">D</div>
+          </div>
+
+          <div id="calendario_tracker" class="calendario-tracker" style="max-width:500px;margin:0 auto"></div>
+
+          <div style="margin-top:20px;text-align:left;max-width:400px;margin-left:auto;margin-right:auto">
+            <span class="inline-label" style="opacity:1;color:#1a1a1a">Guadagno giornaliero (RIDOTTO) €</span>
+            <input type="number" id="guadagno_ridotto" value="100" step="0.01" placeholder="€ al giorno ridotto" oninput="renderTracker()" style="margin-bottom:5px">
+            <span class="inline-label" style="opacity:1;color:#1a1a1a;display:block;margin-top:10px">Guadagno giornaliero (PIENO) € (Preso da Calcolatore RIGA 1)</span>
+          </div>
+
+          <div id="tracker_riepilogo" class="tracker-summary" style="margin-top:25px">
+            <div class="r"><span>Totale Giorni Pieno (Verde): </span><b id="giorni_pieno">0</b></div>
+            <div class="r"><span>Totale Giorni Ridotto (Giallo): </span><b id="giorni_ridotto">0</b></div>
+            <div class="r" style="border-top:1px solid #e2e8f0;margin-top:5px"><span>Fatturato Lordo Mese:</span><b id="guadagno_lordo_mese" class="net">€ 0</b></div>
+          </div>
+
+          <button onclick="resetGiorniMese()" style="margin-top:1rem;padding:.8rem;background:#9B2C2C;max-width:400px;margin:0 auto;display:block">RESET GIORNI MESE CORRENTE</button>
+          <button onclick="esportaTrackerExcel()" style="margin-top:1rem;padding:.8rem;background:#2e7d32;max-width:400px;margin:0 auto;display:block">Esporta Giorni Mese in Excel (CSV)</button>
+          <button onclick="copiaGiorniPerCalcolo()" style="margin-top:1rem;padding:1rem;background:#144272;max-width:400px;margin:0 auto;display:block">COPIA GIORNI TOTALI (1a Riga Calcolatore)</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="anagrafica_clienti" class="tab-content">
+      <div class="card">
+        <div class="ateco" style="padding:.8rem 1rem;text-align:center">ANAGRAFICA CLIENTI</div>
+
+        <div class="form">
+          <h3 style="margin-top:0;color:#1a1a1a">💾 Aggiungi Nuovo Cliente</h3>
+
+          <label>Ragione Sociale / Nome</label>
+          <input type="text" id="ragione_sociale" placeholder="">
+
+          <label>Partita IVA / Codice Fiscale</label>
+          <input type="text" id="p_iva_cf" placeholder="">
+
+          <label>Indirizzo Completo</label>
+          <input type="text" id="indirizzo_cliente" placeholder="">
+
+          <label>Codice Destinatario (SDI)</label>
+          <input type="text" id="codice_destinatario" placeholder="">
+
+          <button onclick="aggiungiCliente()" style="background:#007BFF;margin-top:1rem">SALVA CLIENTE</button>
+        </div>
+
+        <div style="padding:1.2rem 1.2rem 2rem">
+          <h3 style="color:#1a1a1a;margin-bottom:10px">📋 Lista Clienti Salvati</h3>
+
+          <div class="storico-card" style="max-height:400px;overflow:auto">
+            <table class="storico-table" id="tabella_clienti">
+              <thead>
+                <tr>
+                  <th style="text-align:left;width:35%">Ragione Sociale</th>
+                  <th style="text-align:left;width:20%">P.IVA/CF</th>
+                  <th style="text-align:left;width:30%">Indirizzo</th>
+                  <th style="text-align:left;width:10%">Cod. Dest.</th>
+                  <th style="text-align:center;width:5%">Azioni</th>
+                </tr>
+              </thead>
+              <tbody id="tabella_clienti_body"></tbody>
+            </table>
+          </div>
+
+          <div style="text-align:center;padding-top:20px">
+            <button onclick="esportaClientiExcel()" style="width:80%;max-width:400px;padding:.6rem 1.2rem;font-size:.85rem;background:#2e7d32;margin:5px auto;border-radius:8px">Esporta Anagrafica Clienti in Excel (CSV)</button>
+            <button onclick="cancellaTuttiClienti()" style="width:80%;max-width:400px;padding:.6rem 1.2rem;font-size:.85rem;background:#9B2C2C;margin:5px auto;border-radius:8px">Cancella TUTTI i Clienti</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    Tocca 3 puntini → Aggiungi a schermata Home<br>
+    Funziona offline per sempre
+  </footer>
+
+  <script>
+    /* -------------------------
+       Variabili e Inizializzazione
+       ------------------------- */
+    let riga_counter = 1;
+    let meseSelezionato = null;
+    let annoAttivoStorico = new Date().getFullYear();
+    const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+
+    // MODIFICA: Aggiunto rimborsi all'oggetto risultatiCorrenti
+    let risultatiCorrenti = { fatt:0, imp:0, tasse:0, inps:0, versare:0, netto:0, rimborsi: 0 };
+    let storicoMensile = JSON.parse(localStorage.getItem('storicoMensileDroni')) || {};
+    let giorniLavorati = JSON.parse(localStorage.getItem('giorniLavoratiDroni')) || {};
+    let listaClienti = JSON.parse(localStorage.getItem('listaClientiDroni')) || [];
+
+    /* Utility */
+    function formattaEuro(numero){
+      const num = Number(numero)||0;
+      return Math.round(num).toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:0});
+    }
+    function formattaCsvNumber(numero){
+      const num = Number(numero)||0;
+      return num.toFixed(2).replace('.',',');
+    }
+    function formattaCsvNumberStandard(numero){
+      const num = Number(numero)||0;
+      return num.toFixed(2);
+    }
+
+    function popolaSelectMesi(selectId){
+      const select=document.getElementById(selectId);
+      let options='';
+      mesi.forEach((nome,index)=>options+=`<option value="${index+1}">${nome}</option>`);
+      select.innerHTML=options;
+      const oggi=new Date();
+      select.value=oggi.getMonth()+1;
+    }
+    function popolaSelectAnni(selectId){
+      const select=document.getElementById(selectId);
+      const annoCorrente=new Date().getFullYear();
+      let options='';
+      for(let anno=annoCorrente; anno<=annoCorrente+5; anno++) options+=`<option value="${anno}">${anno}</option>`;
+      select.innerHTML=options; select.value=annoCorrente;
+    }
+    function popolaSelectAnniStorico(){
+      const select=document.getElementById('select_anno_storico');
+      const annoCorrente=new Date().getFullYear();
+      const anniNelloStorico=new Set(Object.keys(storicoMensile)
+        .map(k=>parseInt(k.split('-')[0]))
+        .filter(a=>a>=2020 && a<=annoCorrente+5));
+      anniNelloStorico.add(annoCorrente);
+      const anniOrdinati=Array.from(anniNelloStorico).sort((a,b)=>b-a);
+      let options='';
+      anniOrdinati.forEach(a=>options+=`<option value="${a}">${a}</option>`);
+      select.innerHTML=options;
+      if(anniOrdinati.includes(annoAttivoStorico)) select.value=annoAttivoStorico; else { select.value = anniOrdinati[0]; annoAttivoStorico = parseInt(select.value); }
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+      // Inizializza calcolatore: crea 1 riga base senza valori precompilati (giorni=0, guadagno=0)
+      aggiungiRigaBase(1, 0, 0);
+
+      popolaSelectMesi('mese_storico'); popolaSelectAnni('anno_storico'); popolaSelectAnniStorico();
+      popolaSelectMesi('tracker_mese'); popolaSelectAnni('tracker_anno');
+      renderListaClienti();
+      renderStorico();
+      switchTab('calcolatore');
+    });
+
+    /* -------------------------
+       Gestione tab
+       ------------------------- */
+    function switchTab(tabId){
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      document.querySelector(`.tab-button[onclick*="${tabId}"]`).classList.add('active');
+      if(tabId==='storico'){ popolaSelectAnniStorico(); renderStorico(); }
+      else if(tabId==='tracker_giorni'){ popolaSelectMesi('tracker_mese'); popolaSelectAnni('tracker_anno'); renderTracker(); }
+      else if(tabId==='anagrafica_clienti'){ renderListaClienti(); }
+    }
+
+    /* -------------------------
+       Calcolatore (ridotto)
+       ------------------------- */
+    function aggiungiRigaBase(numRiga, giorniValue, guadagnoValue){
+      const container=document.getElementById('righe_guadagno');
+      const newDiv=document.createElement('div'); newDiv.className='input-row'; newDiv.id=`riga-${numRiga}`;
+      const rowLabel=document.createElement('label'); rowLabel.textContent=`RIGA ${numRiga}`;
+      const flexDiv=document.createElement('div'); flexDiv.style.display='flex'; flexDiv.style.gap='10px';
+      const daysContainer=document.createElement('div'); daysContainer.style.width='50%'; daysContainer.innerHTML='<span class="inline-label">Giorni</span>';
+      const inputDays=document.createElement('input'); inputDays.type='number'; inputDays.className='giorni'; inputDays.placeholder='Giorni'; inputDays.value = giorniValue !== undefined ? giorniValue : 0;
+      daysContainer.appendChild(inputDays);
+      const earningsContainer=document.createElement('div'); earningsContainer.style.width='50%'; earningsContainer.innerHTML='<span class="inline-label">Guadagno giornaliero €</span>';
+      const inputEarnings=document.createElement('input'); inputEarnings.type='number'; inputEarnings.className='guadagno'; inputEarnings.placeholder='€ al giorno'; inputEarnings.step='0.01'; inputEarnings.value = guadagnoValue !== undefined ? guadagnoValue : 0;
+      earningsContainer.appendChild(inputEarnings);
+      flexDiv.appendChild(daysContainer); flexDiv.appendChild(earningsContainer);
+      newDiv.appendChild(rowLabel); newDiv.appendChild(flexDiv);
+      const existingRow=document.getElementById(`riga-${numRiga}`); if(existingRow) existingRow.remove();
+      container.appendChild(newDiv); return newDiv;
+    }
+    
+    // MODIFICA: azzeraCampi() include anche i rimborsi extra
+    function azzeraCampi(){ 
+      if(confirm("Sei sicuro di voler azzerare tutti i campi di Giorni e Guadagno?")){ 
+        document.querySelectorAll('.giorni').forEach(i=>i.value=0); 
+        document.querySelectorAll('.guadagno').forEach(i=>i.value=0); 
+        document.getElementById('rimborsi_extra').value=0; // Azzera rimborsi
+        document.getElementById('ris').style.display='none'; 
+        risultatiCorrenti={fatt:0,imp:0,tasse:0,inps:0,versare:0,netto:0, rimborsi: 0}; // Reset rimborsi nell'oggetto
+      }
+    }
+    function rimuoviRiga(){ const container=document.getElementById('righe_guadagno'); let ultimaRiga=document.getElementById(`riga-${riga_counter}`); while(!ultimaRiga && riga_counter>1){ riga_counter--; ultimaRiga=document.getElementById(`riga-${riga_counter}`); } if(riga_counter>1){ if(ultimaRiga) ultimaRiga.remove(); const righeDom=document.querySelectorAll('#righe_guadagno .input-row'); riga_counter = righeDom.length>0 ? parseInt(righeDom[righeDom.length-1].id.split('-')[1]) : 1; document.getElementById('ris').style.display='none'; } else alert("È necessario mantenere almeno una riga di inserimento."); }
+    function aggiungiRiga(){ riga_counter++; aggiungiRigaBase(riga_counter); }
+    
+    // MODIFICA: calcola() aggiornata per gestire i rimborsi extra
+    function calcola(){
+      try{
+        const t=parseFloat(document.getElementById('tasse').value);
+        const rimborsiExtra = parseFloat(document.getElementById('rimborsi_extra').value) || 0; // Recupera rimborsi
+        
+        let fatturatoGuadagno=0; // Solo il fatturato soggetto a tassazione
+        const giorniInput=document.querySelectorAll('.giorni');
+        const guadagnoInput=document.querySelectorAll('.guadagno');
+        for(let i=0;i<giorniInput.length;i++){
+          const g=parseFloat(giorniInput[i].value)||0;
+          const gg=parseFloat(guadagnoInput[i].value)||0;
+          fatturatoGuadagno += g*gg;
+        }
+        
+        const fattSoggetto = fatturatoGuadagno;
+        const fattLordoTotale = fattSoggetto + rimborsiExtra; // Fatturato totale
+        
+        const imp = fattSoggetto*0.78; // Imponibile solo sul fatturato soggetto
+        const tasse = imp * t;
+        const inps = imp * 0.2607;
+        const versare = tasse + inps;
+        
+        const netto = fattLordoTotale - versare; // Netto include i rimborsi
+        
+        // Aggiorna l'oggetto risultatiCorrenti
+        risultatiCorrenti={fatt:fattLordoTotale, imp, tasse, inps, versare, netto, rimborsi: rimborsiExtra}; 
+        
+        document.getElementById('fatt').textContent = formattaEuro(fattLordoTotale);
+        document.getElementById('rimborsi_display').textContent = formattaEuro(rimborsiExtra); // Mostra i rimborsi
+        document.getElementById('imp').textContent = formattaEuro(imp);
+        document.getElementById('t').textContent = formattaEuro(tasse);
+        document.getElementById('p').textContent = formattaEuro(inps);
+        document.getElementById('v').textContent = formattaEuro(versare);
+        document.getElementById('n').textContent = formattaEuro(netto);
+        document.getElementById('ris').style.display='block';
+      } catch(e){ console.error(e); alert("Errore nel calcolo. Controlla i campi."); }
+    }
+
+    /* -------------------------
+       Storico (unchanged functions)
+       ------------------------- */
+    // MODIFICA: salvaRisultati() include anche i rimborsi
+    function salvaRisultati(){
+      if(risultatiCorrenti.fatt===0){ alert("Il Fatturato Lordo è zero. Calcola prima i risultati."); return; }
+      const meseIndex=document.getElementById('mese_storico').value;
+      const anno=document.getElementById('anno_storico').value;
+      const chiave=`${anno}-${meseIndex}`;
+      storicoMensile[chiave]={ 
+        mese: mesi[meseIndex-1], 
+        anno: parseInt(anno), 
+        fatt: risultatiCorrenti.fatt, 
+        imp: risultatiCorrenti.imp, 
+        tasse: risultatiCorrenti.tasse, 
+        inps: risultatiCorrenti.inps, 
+        versare: risultatiCorrenti.versare, 
+        netto: risultatiCorrenti.netto,
+        rimborsi: risultatiCorrenti.rimborsi || 0 // Salva i rimborsi
+      };
+      localStorage.setItem('storicoMensileDroni', JSON.stringify(storicoMensile));
+      annoAttivoStorico = parseInt(anno);
+      popolaSelectAnniStorico(); renderStorico(); alert(`Risultati salvati per ${mesi[meseIndex-1]} ${anno}!`); switchTab('storico');
+    }
+    function selezionaMese(chiave,rowElement){
+      document.querySelectorAll('#tabella_storico_body tr').forEach(r=>{ r.style.backgroundColor=''; r.classList.remove('active-row'); });
+      meseSelezionato = chiave; rowElement.style.backgroundColor='#fff3cd'; rowElement.classList.add('active-row');
+      const datiSelezionati = storicoMensile[chiave];
+      document.getElementById('btn_elimina_selezionato').disabled=false;
+      document.getElementById('btn_elimina_selezionato').textContent = `Elimina Mese Selezionato (${datiSelezionati.mese} ${datiSelezionati.anno})`;
+    }
+    function eliminaMeseSelezionato(){
+      if(meseSelezionato===null){ alert("Seleziona prima un mese dalla tabella."); return; }
+      const nomeMeseAnno = `${storicoMensile[meseSelezionato].mese} ${storicoMensile[meseSelezionato].anno}`;
+      if(confirm(`Sei sicuro di voler eliminare i dati del mese di ${nomeMeseAnno}?`)){ delete storicoMensile[meseSelezionato]; localStorage.setItem('storicoMensileDroni',JSON.stringify(storicoMensile)); meseSelezionato=null; document.getElementById('btn_elimina_selezionato').disabled=true; document.getElementById('btn_elimina_selezionato').textContent='Elimina Mese Selezionato'; popolaSelectAnniStorico(); renderStorico(); alert(`Dati di ${nomeMeseAnno} eliminati con successo.`); }
+    }
+    
+    // MODIFICA: esportaStoricoExcel() include la colonna Rimborsi Extra
+    function esportaStoricoExcel(){
+      const anno = annoAttivoStorico;
+      const chiavi = Object.keys(storicoMensile).filter(k=>k.startsWith(`${anno}-`)).sort((a,b)=>parseInt(a.split('-')[1])-parseInt(b.split('-')[1]));
+      if(chiavi.length===0){ alert(`Nessun dato storico per l'anno ${anno} da esportare.`); return; }
+      // NUOVA INTESTAZIONE CSV
+      let csv="Mese;Fatturato Lordo (€);Rimborsi Extra (€);Imponibile (78%) (€);Tasse (€);INPS (26,07%) (€);DA VERSARE (€);NETTO (€)\n";
+      let totaleLordo=0, totaleTasse=0, totaleNetto=0;
+      chiavi.forEach(k=>{
+        const d=storicoMensile[k];
+        const daVersare = (d.tasse||0) + (d.inps||0);
+        const rimb = d.rimborsi || 0; // Prende i rimborsi salvati
+        totaleLordo += d.fatt; totaleTasse += daVersare; totaleNetto += d.netto;
+        // NUOVO CORPO CSV
+        csv += `${d.mese};${formattaCsvNumber(d.fatt)};${formattaCsvNumber(rimb)};${formattaCsvNumber(d.imp)};${formattaCsvNumber(d.tasse)};${formattaCsvNumber(d.inps)};${formattaCsvNumber(daVersare)};${formattaCsvNumber(d.netto)}\n`;
+      });
+      csv += `\nTOTALE ANNUALE;${formattaCsvNumber(totaleLordo)};N/A;N/A;N/A;N/A;${formattaCsvNumber(totaleTasse)};${formattaCsvNumber(totaleNetto)}\n`;
+      const BOM="\uFEFF"; const blob=new Blob([BOM+csv],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download=`DronePilotPro_Storico_${anno}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+    function renderStorico(){
+      const selectAnno=document.getElementById('select_anno_storico'); if(selectAnno) annoAttivoStorico = parseInt(selectAnno.value);
+      if(meseSelezionato && !meseSelezionato.startsWith(`${annoAttivoStorico}-`)) meseSelezionato = null;
+      const tabellaBody = document.getElementById('tabella_storico_body'); tabellaBody.innerHTML='';
+      document.getElementById('btn_elimina_selezionato').disabled=true; document.getElementById('btn_elimina_selezionato').textContent='Elimina Mese Selezionato';
+      const chiavi = Object.keys(storicoMensile).filter(k=>k.startsWith(`${annoAttivoStorico}-`)).sort((a,b)=>parseInt(a.split('-')[1])-parseInt(b.split('-')[1]));
+      let totaleNettoAnnuo=0, totaleLordoAnnuo=0, totaleTasseAnnue=0;
+      chiavi.forEach(k=>{
+        const d=storicoMensile[k]; const daVersare=(d.tasse||0)+(d.inps||0);
+        const newRow=document.createElement('tr'); newRow.id=`storico-row-${k}`; newRow.setAttribute('onclick',`selezionaMese('${k}',this)`);
+        if(k===meseSelezionato){ newRow.style.backgroundColor='#fff3cd'; document.getElementById('btn_elimina_selezionato').disabled=false; document.getElementById('btn_elimina_selezionato').textContent=`Elimina Mese Selezionato (${d.mese} ${d.anno})`; }
+        newRow.innerHTML = `<td style="text-align:left">${d.mese}</td><td data-campo="fatt">${formattaEuro(d.fatt)}</td><td data-campo="imp">${formattaEuro(d.imp)}</td><td data-campo="tasse">${formattaEuro(d.tasse)}</td><td data-campo="inps">${formattaEuro(d.inps)}</td><td data-campo="versare" class="tot"><b>${formattaEuro(daVersare)}</b></td><td data-campo="netto" class="net"><b>${formattaEuro(d.netto)}</b></td>`;
+        tabellaBody.appendChild(newRow);
+        totaleNettoAnnuo += d.netto; totaleLordoAnnuo += d.fatt; totaleTasseAnnue += daVersare;
+      });
+      document.getElementById('lordo_annuo_totale').textContent = `€ ${formattaEuro(totaleLordoAnnuo)}`;
+      document.getElementById('tasse_annue_totali').textContent = `€ ${formattaEuro(totaleTasseAnnue)}`;
+      document.getElementById('netto_annuo_totale').textContent = `€ ${formattaEuro(totaleNettoAnnuo)}`;
+      if(chiavi.length===0) tabellaBody.innerHTML = `<tr><td colspan="7" style="text-align:center;opacity:.6;padding:15px">Nessun dato salvato per l'anno ${annoAttivoStorico}.</td></tr>`;
+      const btnCanc=document.querySelector('#storico button[onclick="cancellaStorico()"]'); if(btnCanc) btnCanc.textContent = `Cancella Storico Completo di ${annoAttivoStorico}`;
+    }
+    function cancellaStorico(){ if(confirm(`ATTENZIONE! Sei sicuro di voler cancellare TUTTI i dati salvati per l'anno ${annoAttivoStorico}? Questa operazione è irreversibile.`)){ Object.keys(storicoMensile).filter(k=>k.startsWith(`${annoAttivoStorico}-`)).forEach(k=>delete storicoMensile[k]); localStorage.setItem('storicoMensileDroni',JSON.stringify(storicoMensile)); meseSelezionato=null; popolaSelectAnniStorico(); renderStorico(); alert(`Storico completo per l'anno ${annoAttivoStorico} cancellato con successo!`); } }
+
+    /* -------------------------
+       Tracker Giorni (unchanged)
+       ------------------------- */
+    function toggleGiorno(giorno){
+      const mese=document.getElementById('tracker_mese').value; const anno=document.getElementById('tracker_anno').value; const chiave=`${anno}-${mese}`;
+      if(!giorniLavorati[chiave]) giorniLavorati[chiave]={};
+      const statoCorrente = giorniLavorati[chiave][giorno]||0; let nuovoStato=0;
+      if(statoCorrente===0) nuovoStato=1; else if(statoCorrente===1) nuovoStato=2; else nuovoStato=0;
+      if(nuovoStato===0) delete giorniLavorati[chiave][giorno]; else giorniLavorati[chiave][giorno]=nuovoStato;
+      localStorage.setItem('giorniLavoratiDroni', JSON.stringify(giorniLavorati)); renderTracker();
+    }
+    function resetGiorniMese(){
+      const mese=document.getElementById('tracker_mese').value; const anno=document.getElementById('tracker_anno').value; const chiave=`${anno}-${mese}`; const nomeMese = mesi[parseInt(mese)-1];
+      if(confirm(`Sei sicuro di voler resettare tutti i giorni lavorati per ${nomeMese} ${anno}?`)){ delete giorniLavorati[chiave]; localStorage.setItem('giorniLavoratiDroni',JSON.stringify(giorniLavorati)); renderTracker(); alert(`Giorni lavorati per ${nomeMese} ${anno} resettati con successo.`); }
+    }
+    function renderTracker(){
+      const meseIndex = parseInt(document.getElementById('tracker_mese').value); const anno = parseInt(document.getElementById('tracker_anno').value); const calendarioDiv=document.getElementById('calendario_tracker'); const chiave=`${anno}-${meseIndex}`;
+      calendarioDiv.innerHTML='';
+      const oggi=new Date(); const giornoCorrente=oggi.getDate(); const meseCorrente=oggi.getMonth()+1; const annoCorrente=oggi.getFullYear();
+      const giorniNelMese = new Date(anno, meseIndex, 0).getDate();
+      const statiGiorniMese = giorniLavorati[chiave] || {};
+      let giorniPieno=0, giorniRidotto=0;
+      const primoGiornoSettimana = (new Date(anno, meseIndex-1,1).getDay()+6)%7;
+      for(let i=0;i<primoGiornoSettimana;i++){ const ph = document.createElement('div'); ph.className='giorno-tracker'; ph.style.backgroundColor='transparent'; ph.style.border='none'; ph.textContent=''; calendarioDiv.appendChild(ph); }
+      for(let giorno=1; giorno<=giorniNelMese; giorno++){
+        const giornoDiv=document.createElement('div'); giornoDiv.className='giorno-tracker'; giornoDiv.textContent=giorno; giornoDiv.setAttribute('onclick',`toggleGiorno(${giorno})`);
+        const stato = statiGiorniMese[giorno]||0;
+        if(stato===1){ giornoDiv.classList.add('lavorato'); giorniPieno++; } else if(stato===2){ giornoDiv.classList.add('ridotto'); giorniRidotto++; }
+        if(giorno===giornoCorrente && meseIndex===meseCorrente && anno===annoCorrente) giornoDiv.classList.add('odierno');
+        calendarioDiv.appendChild(giornoDiv);
+      }
+      const guadagnoPienoElement = document.querySelector('#riga-1 .guadagno'); const guadagnoPieno = parseFloat(guadagnoPienoElement ? guadagnoPienoElement.value : 0) || 0;
+      const guadagnoRidotto = parseFloat(document.getElementById('guadagno_ridotto').value) || 0;
+      const lordoMese = (giorniPieno * guadagnoPieno) + (giorniRidotto * guadagnoRidotto);
+      document.getElementById('giorni_pieno').textContent = giorniPieno; document.getElementById('giorni_ridotto').textContent = giorniRidotto; document.getElementById('guadagno_lordo_mese').textContent = `€ ${formattaEuro(lordoMese)}`;
+    }
+    function copiaGiorniPerCalcolo(){
+      const mese=document.getElementById('tracker_mese').value; const anno=document.getElementById('tracker_anno').value; const chiave=`${anno}-${mese}`;
+      const statiGiorniMese = giorniLavorati[chiave]||{};
+      let giorniPieno=0,giorniRidotto=0; Object.values(statiGiorniMese).forEach(s=>{ if(s===1) giorniPieno++; if(s===2) giorniRidotto++; });
+      const guadagnoPienoElement=document.querySelector('#riga-1 .guadagno'); const guadagnoPieno = parseFloat(guadagnoPienoElement ? guadagnoPienoElement.value : 0) || 0;
+      const guadagnoRidotto = parseFloat(document.getElementById('guadagno_ridotto').value) || 0;
+      const container=document.getElementById('righe_guadagno'); container.innerHTML=''; aggiungiRigaBase(1, giorniPieno, guadagnoPieno); let alertMessage=`Riga 1 (Pieno): ${giorniPieno} giorni a €${guadagnoPieno} al giorno.`; riga_counter=1;
+      if(giorniRidotto>0){ riga_counter=2; aggiungiRigaBase(2, giorniRidotto, guadagnoRidotto); alertMessage += `\nRiga 2 (Ridotto): ${giorniRidotto} giorni a €${guadagnoRidotto} al giorno.`; }
+      let i=riga_counter+1; let rowToRemove=document.getElementById(`riga-${i}`); while(rowToRemove){ rowToRemove.remove(); i++; rowToRemove=document.getElementById(`riga-${i}`); }
+      alert(`Dati copiati e righe aggiornate nel Calcolatore:\n\n${alertMessage}`); switchTab('calcolatore');
+    }
+    function esportaTrackerExcel(){
+      const meseIndex = parseInt(document.getElementById('tracker_mese').value); const anno = parseInt(document.getElementById('tracker_anno').value); const chiave = `${anno}-${meseIndex}`; const nomeMese = mesi[meseIndex-1];
+      const statiGiorniMese = giorniLavorati[chiave]||{}; const giorniNelMese = new Date(anno, meseIndex, 0).getDate();
+      if(Object.keys(statiGiorniMese).length===0){ alert(`Nessun giorno lavorato registrato per ${nomeMese} ${anno} da esportare.`); return; }
+      const guadagnoPienoElement=document.querySelector('#riga-1 .guadagno'); const guadagnoPieno = parseFloat(guadagnoPienoElement ? guadagnoPienoElement.value : 0) || 0;
+      const guadagnoRidotto = parseFloat(document.getElementById('guadagno_ridotto').value) || 0;
+      let csv = `Tracker Giorni Lavorati - Mese: ${nomeMese} ${anno}\n\nGiorno;Stato;Guadagno (€)\n`; let giorniPieno=0,giorniRidotto=0,lordoMese=0;
+      for(let g=1; g<=giorniNelMese; g++){
+        const stato = statiGiorniMese[g]||0; let desc="Libero", guad=0;
+        if(stato===1){ desc="PIENO"; guad=guadagnoPieno; giorniPieno++; } else if(stato===2){ desc="RIDOTTO"; guad=guadagnoRidotto; giorniRidotto++; }
+        if(stato>0) csv+=`${g};${desc};${formattaCsvNumber(guad)}\n`;
+        lordoMese += guad;
+      }
+      csv += `\nRIEPILOGO MESE\nGuadagno Giornaliero Pieno;€ ${formattaCsvNumber(guadagnoPieno)}\nGuadagno Giornaliero Ridotto;€ ${formattaCsvNumber(guadagnoRidotto)}\nGiorni Lavorati (PIENO);${giorniPieno}\nGiorni Lavorati (RIDOTTO);${giorniRidotto}\nFATTURATO LORDO TOTALE;€ ${formattaCsvNumber(lordoMese)}\n`;
+      const BOM="\uFEFF"; const blob=new Blob([BOM+csv],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download=`DronePilotPro_Tracker_${nomeMese}_${anno}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    /* -------------------------
+       Anagrafica Clienti (AGGIORNATA)
+       ------------------------- */
+    function aggiungiCliente(){
+      const ragioneSociale = document.getElementById('ragione_sociale').value.trim();
+      const pIvaCf = document.getElementById('p_iva_cf').value.trim();
+      const indirizzo = document.getElementById('indirizzo_cliente').value.trim();
+      const codiceDestinatario = document.getElementById('codice_destinatario').value.trim();
+      if(ragioneSociale===""||pIvaCf===""){ alert("Per salvare un cliente devi inserire almeno la Ragione Sociale/Nome e la Partita IVA/Codice Fiscale."); return; }
+      const nuovoCliente = { id: Date.now(), ragioneSociale, pIvaCf, indirizzo, codiceDestinatario };
+      listaClienti.push(nuovoCliente);
+      localStorage.setItem('listaClientiDroni', JSON.stringify(listaClienti));
+      // Pulisci i campi (lasciamo campi vuoti dopo il salvataggio)
+      document.getElementById('ragione_sociale').value = "";
+      document.getElementById('p_iva_cf').value = "";
+      document.getElementById('indirizzo_cliente').value = "";
+      document.getElementById('codice_destinatario').value = "";
+      renderListaClienti();
+      alert(`Cliente "${ragioneSociale}" salvato con successo!`);
+    }
+
+    function rimuoviCliente(id){
+      if(confirm("Sei sicuro di voler eliminare questo cliente?")){
+        listaClienti = listaClienti.filter(c=>c.id !== id);
+        localStorage.setItem('listaClientiDroni', JSON.stringify(listaClienti));
+        renderListaClienti();
+      }
+    }
+
+    function cancellaTuttiClienti(){
+      if(confirm("ATTENZIONE! Sei sicuro di voler cancellare TUTTI i clienti salvati? L'operazione è irreversibile.")){
+        listaClienti = []; localStorage.setItem('listaClientiDroni', JSON.stringify(listaClienti)); renderListaClienti(); alert("Anagrafica clienti completamente svuotata.");
+      }
+    }
+
+    // copiaCliente: copia in formato testo normale (come richiesto)
+    function copiaCliente(id){
+      const c = listaClienti.find(x=>x.id===id);
+      if(!c) return;
+      const testo = `${c.ragioneSociale}\nP.IVA/CF: ${c.pIvaCf}\nIndirizzo: ${c.indirizzo || '-'}\nCodice Destinatario: ${c.codiceDestinatario || '-'}`;
+      // Usa clipboard API (fallback ad alert se non disponibile)
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(testo).then(()=>{ alert("Dati cliente copiati negli appunti!"); }).catch(()=>{ prompt("Copia manualmente il testo qui sotto:", testo); });
+      } else {
+        prompt("Copia manualmente il testo qui sotto:", testo);
+      }
+    }
+
+    function renderListaClienti(){
+      const tabellaBody = document.getElementById('tabella_clienti_body');
+      tabellaBody.innerHTML = '';
+      if(listaClienti.length === 0){
+        tabellaBody.innerHTML = `<tr><td colspan="5" style="text-align:center; opacity:0.6; padding:15px">Nessun cliente salvato.</td></tr>`;
+        return;
+      }
+      listaClienti.forEach(c=>{
+        const tr = document.createElement('tr'); tr.style.cursor='default';
+        tr.innerHTML = `
+          <td style="text-align:left;padding-right:15px">${escapeHtml(c.ragioneSociale)}</td>
+          <td style="text-align:left">${escapeHtml(c.pIvaCf)}</td>
+          <td style="text-align:left">${escapeHtml(c.indirizzo || '-')}</td>
+          <td style="text-align:left">${escapeHtml(c.codiceDestinatario || '-')}</td>
+          <td style="text-align:center">
+            <button class="small-btn btn-copy" onclick="copiaCliente(${c.id})" title="Copia dati cliente">📋</button>
+            <button class="small-btn btn-delete" onclick="rimuoviCliente(${c.id})" title="Elimina cliente">🗑️</button>
+          </td>
+        `;
+        tabellaBody.appendChild(tr);
+      });
+    }
+
+    // Export clienti CSV (già include indirizzo)
+    function esportaClientiExcel(){
+      if(listaClienti.length===0){ alert("Nessun cliente da esportare."); return; }
+      let csv = "Ragione Sociale;Partita IVA / Codice Fiscale;Indirizzo Completo;Codice Destinatario\n";
+      listaClienti.forEach(c=>{
+        const rs = `"${(c.ragioneSociale||'').replace(/"/g,'""')}"`;
+        const cf = `"${(c.pIvaCf||'').replace(/"/g,'""')}"`;
+        const ind = `"${(c.indirizzo||'').replace(/"/g,'""')}"`;
+        const cod = `"${(c.codiceDestinatario||'').replace(/"/g,'""')}"`;
+        csv += `${rs};${cf};${ind};${cod}\n`;
+      });
+      const BOM = "\uFEFF"; const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8" }); const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `DronePilotPro_Clienti.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    // semplice escape per evitare HTML injection nella tabella
+    function escapeHtml(text){
+      if(!text && text !== 0) return '';
+      return String(text).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); });
+    }
+
+  </script>
+</body>
+</html>
